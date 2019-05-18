@@ -156,7 +156,7 @@ function ensure-compiler() {
     export CXX=${CXX:-c++}
     export CC=${CC:-cc}
     if [[ $PIN_COMPILER == false ]]; then
-        which $CXX &>/dev/null || ( echo "${COLOR_RED}Unable to find compiler \"${CXX}\"! Pass in the -P option if you wish for us to install it OR set \$CXX to the proper binary location. ${COLOR_NC}"; exit 1 )
+        which $CXX &>/dev/null || ( echo "${COLOR_RED}Unable to find compiler \"${CXX}\"! Pass in the -P option if you wish for us to install it, set \$CXX to the proper binary location, or install a C++17 compiler. ${COLOR_NC}"; exit 1 )
         # readlink on mac differs from linux readlink (mac doesn't have -f)
         [[ $ARCH == "Linux" ]] && READLINK_COMMAND="readlink -f" || READLINK_COMMAND="readlink"
         COMPILER_TYPE=$( eval $READLINK_COMMAND $(which $CXX) )
