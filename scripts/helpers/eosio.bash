@@ -370,7 +370,7 @@ function ensure-yum-packages() {
     done < $DEPS_FILE
     IFS=$OLDIFS
     echo ""
-    if [ "${COUNT}" -gt 1 ]; then
+    if [[ $COUNT > 0 ]]; then
         while true; do
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to install missing dependencies? (y/n)?${COLOR_NC}" && read -p " " PROCEED
             case $PROCEED in
@@ -418,7 +418,7 @@ function ensure-brew-packages() {
         echo " - ${name} ${COLOR_RED}NOT${COLOR_NC} found."
         (( COUNT++ ))
     done < $DEPS_FILE
-    if [ $COUNT -gt 1 ]; then
+    if [[ $COUNT > 0 ]]; then
         echo ""
         while true; do
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to install missing dependencies? (y/n)${COLOR_NC}" && read -p " " PROCEED
