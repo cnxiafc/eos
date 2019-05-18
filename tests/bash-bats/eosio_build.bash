@@ -19,6 +19,20 @@ TEST_LABEL="[eosio_build]"
         [[ ! -z $(echo "${output}" | grep "Please install the 'which'") ]] || exit
     fi
 
+    if [[ $ARCH == "Linux" ]]; then
+
+        if [[ $NAME == "CentOS Linux" ]]; then # Centos has the SCL prompt before checking for the compiler
+            # No c++!
+            run bash -c "printf \"y\ny\nn\n\" | ./${SCRIPT_LOCATION}"
+        else
+            # No c++!
+            run bash -c "printf \"y\nn\nn\n\" | ./${SCRIPT_LOCATION}"
+        fi
+        [[ ! -z $(echo "${output}" | grep "Unable to find compiler \"c++\"! Pass in the -P option if you wish for us to install it, set \$CXX to the proper binary location, or install a C++17 compiler") ]] || exit
+
+
+    fi 
+
     # -P with -y
     run bash -c "./$SCRIPT_LOCATION -y -P"
     [[ ! -z $(echo "${output}" | grep "PIN_COMPILER: true") ]] || exit

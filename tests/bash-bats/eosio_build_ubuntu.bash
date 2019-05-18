@@ -25,10 +25,6 @@ export TEST_LABEL="[eosio_build_ubuntu]"
 @test "${TEST_LABEL} > General" {
     set_system_vars # Obtain current machine's resources and set the necessary variables (like JOBS, etc)
 
-    # No c++!
-    run bash -c "printf \"y\nn\nn\n\" | ./${SCRIPT_LOCATION}"
-    [[ ! -z $(echo "${output}" | grep "Unable to find compiler \"c++\"! Pass in the -P option if you wish for us to install it OR set \$CXX to the proper binary location.") ]] || exit
-
     # Testing clang already existing (no pinning of clang8)
     [[ "$(echo ${VERSION_ID})" == "16.04" ]] && install-package clang BYPASS_DRYRUN &>/dev/null || install-package build-essential BYPASS_DRYRUN
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"

@@ -8,28 +8,20 @@ export TEST_LABEL="[eosio_build_amazonlinux]"
 
 # A helper function is available to show output and status: `debug`
 
-# # Testing Root user
-# ./tests/bash-bats/modules/root-user.bash
-# # Testing Options
-# ./tests/bash-bats/modules/dep_script_options.bash
-# # Testing CMAKE
-# ./tests/bash-bats/modules/cmake.bash
-# # Testing Clang
-# ./tests/bash-bats/modules/clang.bash
-# # Testing MongoDB
-# ./tests/bash-bats/modules/mongodb.bash
+# Testing Root user
+./tests/bash-bats/modules/root-user.bash
+# Testing Options
+./tests/bash-bats/modules/dep_script_options.bash
+# Testing CMAKE
+./tests/bash-bats/modules/cmake.bash
+# Testing Clang
+./tests/bash-bats/modules/clang.bash
+# Testing MongoDB
+./tests/bash-bats/modules/mongodb.bash
 
 ## Needed to load eosio_build_ files properly; it can be empty
 @test "${TEST_LABEL} > General" {
     set_system_vars # Obtain current machine's resources and set the necessary variables (like JOBS, etc)
-
-    # no which!
-    run bash -c "printf \"n\n%.0s\" {1..2} | ./$SCRIPT_LOCATION -P"
-    [[ "${output##*$'\n'}" =~ "Please install the 'which' command before proceeding" ]] || exit
-
-    # No c++!
-    run bash -c "printf \"y\nn\nn\n\" | ./${SCRIPT_LOCATION}"
-    [[ ! -z $(echo "${output}" | grep "Unable to find compiler \"c++\"! Pass in the -P option if you wish for us to install it OR set \$CXX to the proper binary location.") ]] || exit
 
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION -P"
     [[ ! -z $(echo "${output}" | grep "Executing: make -j${JOBS}") ]] || exit

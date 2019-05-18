@@ -24,14 +24,6 @@ export TEST_LABEL="[eosio_build_centos]"
 @test "${TEST_LABEL} > General" {
     set_system_vars # Obtain current machine's resources and set the necessary variables (like JOBS, etc)
 
-    # no which!
-    run bash -c "printf \"n\n%.0s\" {1..2} | ./$SCRIPT_LOCATION -P"
-    [[ "${output##*$'\n'}" =~ "Please install the 'which' command before proceeding" ]] || exit
-
-    # No c++!
-    run bash -c "printf \"y\ny\nn\n\" | ./${SCRIPT_LOCATION}"
-    [[ ! -z $(echo "${output}" | grep "Unable to find compiler \"c++\"! Pass in the -P option if you wish for us to install it OR set \$CXX to the proper binary location.") ]] || exit
-
     execute-always yum -y --enablerepo=extras install centos-release-scl &>/dev/null
     install-package devtoolset-7 BYPASS_DRYRUN &>/dev/null
     # Ensure SCL and devtoolset-7 for c++ binary installation
