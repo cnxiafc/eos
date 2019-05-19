@@ -41,8 +41,6 @@ function setup() {
         echo "ENABLE_DOXYGEN: ${ENABLE_DOXYGEN}"
         echo "ENABLE_MONGO: ${ENABLE_MONGO}"
         echo "INSTALL_MONGO: ${INSTALL_MONGO}"
-        echo "CXX: ${CXX}"
-        echo "CC: ${CC}"
         echo "PIN_COMPILER: ${PIN_COMPILER}"
     fi
     [[ -d $BUILD_DIR ]] && execute rm -rf $BUILD_DIR # cleanup old build directory
@@ -174,12 +172,8 @@ function ensure-compiler() {
                 ### Check for apple clang version 10 or higher
                 [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) -lt 10 ]] && export NO_CPP17=true
             else
-                # https://bugs.llvm.org/show_bug.cgi?id=38836: Avoid -dumpversion: Wrong version output
-                if [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]]; then # Check if the version message cut returns an integer (supports llvm/clang7 on ubuntu16)
-                    [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) < 5 ]] && export NO_CPP17=true
-                elif [[ $(clang --version | cut -d ' ' -f 4 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]]; then # Check if the version message cut returns an integer
-                    [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) < 5 ]] && export NO_CPP17=true
-                fi
+                ### Check for clang version 5 or higher
+                [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) -lt 5 ]] && export NO_CPP17=true
             fi
         else
             ## Check for c++ version 7 or higher
@@ -188,7 +182,7 @@ function ensure-compiler() {
     fi
     if $NO_CPP17; then
         while true; do
-            echo "${COLOR_YELLOW}Unable to find C++17 support!${COLOR_NC}"
+            echo "${COLOR_YELLOW}Unable to find C++17 support in ${CXX}!${COLOR_NC}"
             echo "If you already have a C++17 compiler installed or would like to install your own, export CXX to point to the compiler of your choosing."
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to download and build C++17? (y/n)?${COLOR_NC}" && read -p " " PROCEED
             case $PROCEED in
