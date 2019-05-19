@@ -41,6 +41,8 @@ function setup() {
         echo "ENABLE_DOXYGEN: ${ENABLE_DOXYGEN}"
         echo "ENABLE_MONGO: ${ENABLE_MONGO}"
         echo "INSTALL_MONGO: ${INSTALL_MONGO}"
+        echo "CXX: ${CXX}"
+        echo "CC: ${CC}"
         echo "PIN_COMPILER: ${PIN_COMPILER}"
     fi
     [[ -d $BUILD_DIR ]] && execute rm -rf $BUILD_DIR # cleanup old build directory
@@ -167,7 +169,7 @@ function ensure-compiler() {
         [[ $ARCH == "Linux" ]] && READLINK_COMMAND="readlink -f" || READLINK_COMMAND="readlink"
         COMPILER_TYPE=$( eval $READLINK_COMMAND $(which $CXX) )
         [[ -z "${COMPILER_TYPE}" ]] && echo "${COLOR_RED}COMPILER_TYPE not set!${COLOR_NC}" && exit 1
-        if [[ $COMPILER_TYPE == "clang++" ]] || [[ $COMPILER_TYPE == "clang" ]]; then
+        if [[ $COMPILER_TYPE =~ "clang" ]]; then
             if [[ $ARCH == "Darwin" ]]; then
                 ### Check for apple clang version 10 or higher
                 [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) -lt 10 ]] && export NO_CPP17=true
@@ -176,7 +178,7 @@ function ensure-compiler() {
                 if [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]]; then # Check if the version message cut returns an integer (supports llvm/clang7 on ubuntu16)
                     [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) < 5 ]] && export NO_CPP17=true
                 elif [[ $(clang --version | cut -d ' ' -f 4 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]]; then # Check if the version message cut returns an integer
-                    [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) -lt 5 ]] && export NO_CPP17=true
+                    [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) < 5 ]] && export NO_CPP17=true
                 fi
             fi
         else
