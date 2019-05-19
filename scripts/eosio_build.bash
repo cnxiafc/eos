@@ -119,7 +119,7 @@ if ! which ls &>/dev/null; then
       echo ""
       case $PROCEED in
          "" ) echo "What would you like to do?";;
-         0 | true | [Yy]* ) install-package which BYPASS_DRYRUN &>/dev/null; break;;
+         0 | true | [Yy]* ) install-package which BYPASS_DRYRUN; break;;
          1 | false | [Nn]* ) echo "${COLOR_RED}Please install the 'which' command before proceeding!${COLOR_NC}"; exit 1;;
          * ) echo "Please type 'y' for yes or 'n' for no.";;
       esac
