@@ -10,23 +10,6 @@ echo "Disk space available: ${DISK_AVAIL}G"
 [[ $MEM_GIG -lt 7 ]] && echo "Your system must have 7 or more Gigabytes of physical memory installed." && exit 1
 [[ "${DISK_AVAIL}" -lt "${DISK_MIN}" ]] && echo " - You must have at least ${DISK_MIN}GB of available storage to install EOSIO." && exit 1
 
-while true; do
-	[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to update APT-GET repositories? (y/n)?${COLOR_NC} " PROCEED
-	case $PROCEED in
-		"" ) echo "What would you like to do?";;
-		0 | true | [Yy]* )
-			if ! execute $( [[ $CURRENT_USER == "root" ]] || echo sudo ) $APTGET update; then
-				echo " - ${COLOR_RED}APT-GET update failed.${COLOR_NC}"
-				exit 1;
-			else
-				echo " - ${COLOR_GREEN}APT-GET update complete.${COLOR_NC}"
-			fi
-		break;;
-		1 | false | [Nn]* ) echo " - Proceeding without update!"; break;;
-		* ) echo "Please type 'y' for yes or 'n' for no.";;
-	esac
-done
-echo ""
 # C++7 for Ubuntu 18 (16 build-essential has cpp5)
 ( [[ $PIN_COMPILER == false ]] && [[ "$(echo ${VERSION_ID})" == "18.04" ]] ) && ensure-build-essential
 # Handle clang/compiler

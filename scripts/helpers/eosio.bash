@@ -486,6 +486,22 @@ function ensure-apt-packages() {
             case $PROCEED in
                 "" ) echo "What would you like to do?";;
                 0 | true | [Yy]* )
+                    while true; do
+                        [[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to update APT-GET repositories before installing packages? (y/n)?${COLOR_NC} " PROCEED
+                        case $PROCEED in
+                            "" ) echo "What would you like to do?";;
+                            0 | true | [Yy]* )
+                                if ! execute $( [[ $CURRENT_USER == "root" ]] || echo sudo ) $APTGET update; then
+                                    echo " - ${COLOR_RED}APT-GET update failed.${COLOR_NC}"
+                                    exit 1;
+                                else
+                                    echo " - ${COLOR_GREEN}APT-GET update complete.${COLOR_NC}"
+                                fi
+                            break;;
+                            1 | false | [Nn]* ) echo " - Proceeding without update!"; break;;
+                            * ) echo "Please type 'y' for yes or 'n' for no.";;
+                        esac
+                    done
                     execute eval $( [[ $CURRENT_USER == "root" ]] || echo /usr/bin/sudo -E ) $APTGET -y install $DEPS
                 break;;
                 1 | false | [Nn]* ) echo " ${COLOR_RED}- User aborted installation of required dependencies.${COLOR_NC}"; exit;;
