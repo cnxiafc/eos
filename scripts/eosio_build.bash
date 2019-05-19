@@ -112,6 +112,13 @@ fi
 
 [[ ! $NAME == "Ubuntu" ]] && set -i # Ubuntu doesn't support interactive mode since it uses dash
 
+echo "Beginning build version: ${SCRIPT_VERSION}"
+echo "EOSIO version to install: ${EOSIO_VERSION}"
+echo "$( date -u )"
+echo "User: ${CURRENT_USER}"
+# echo "git head id: %s" "$( cat .git/refs/heads/master )"
+echo "Current branch: $( execute git rev-parse --abbrev-ref HEAD 2>/dev/null )"
+
 # Test that which is on the system before proceeding
 if ! which ls &>/dev/null; then
    while true; do
@@ -125,14 +132,6 @@ if ! which ls &>/dev/null; then
       esac
    done
 fi
-
-echo "Beginning build version: ${SCRIPT_VERSION}"
-echo "EOSIO version to install: ${EOSIO_VERSION}"
-echo "$( date -u )"
-CURRENT_USER=${CURRENT_USER:-$(whoami)}
-echo "User: ${CURRENT_USER}"
-# echo "git head id: %s" "$( cat .git/refs/heads/master )"
-echo "Current branch: $( execute git rev-parse --abbrev-ref HEAD 2>/dev/null )"
 
 # Prevent a non-git clone from running
 ensure-git-clone
