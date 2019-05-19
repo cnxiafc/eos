@@ -28,6 +28,7 @@ export TEST_LABEL="[eosio_build_ubuntu]"
     # Testing clang already existing (no pinning of clang8)
     [[ "$(echo ${VERSION_ID})" == "16.04" ]] && install-package clang BYPASS_DRYRUN &>/dev/null || install-package build-essential BYPASS_DRYRUN
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
+    debug
     [[ ! -z $(echo "${output}" | grep "Executing: make -j${JOBS}") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Executing: /usr/bin/apt-get update") ]] || exit

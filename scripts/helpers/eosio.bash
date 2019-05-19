@@ -155,8 +155,14 @@ function ensure-build-essential() {
 function ensure-compiler() {
     export CXX=${CXX:-c++}
     export CC=${CC:-cc}
-    if [[ $PIN_COMPILER == false ]]; then
-        which $CXX &>/dev/null || ( echo "${COLOR_RED}Unable to find compiler \"${CXX}\"! Pass in the -P option if you wish for us to install it, set \$CXX to the proper binary location, or install a C++17 compiler. ${COLOR_NC}"; exit 1 )
+    if $PIN_COMPILER || [[ -f $CLANG_ROOT/bin/clang++ ]]; then
+        export PIN_COMPILER=true
+        export BUILD_CLANG=true
+        export CPP_COMP=$CLANG_ROOT/bin/clang++
+        export CC_COMP=$CLANG_ROOT/bin/clang
+        export PATH=$CLANG_ROOT/bin:$PATH
+    elif [[ $PIN_COMPILER == false ]]; then
+        which $CXX &>/dev/null || ( echo "${COLOR_RED}Unable to find compiler \"${CXX}\"! Pass in the -P option if you wish for us to install it or install a C++17 compiler and set \$CXX and \$CC to the proper binary locations. ${COLOR_NC}"; exit 1 )
         # readlink on mac differs from linux readlink (mac doesn't have -f)
         [[ $ARCH == "Linux" ]] && READLINK_COMMAND="readlink -f" || READLINK_COMMAND="readlink"
         COMPILER_TYPE=$( eval $READLINK_COMMAND $(which $CXX) )
@@ -173,11 +179,6 @@ function ensure-compiler() {
             ## Check for c++ version 7 or higher
             [[ $( $(which $CXX) -dumpversion | cut -d '.' -f 1 ) -lt 7 ]] && export NO_CPP17=true
         fi
-    elif $PIN_COMPILER; then
-        export BUILD_CLANG=true
-        export CPP_COMP=$CLANG_ROOT/bin/clang++
-        export CC_COMP=$CLANG_ROOT/bin/clang
-        export PATH=$CLANG_ROOT/bin:$PATH
     fi
     if $NO_CPP17; then
         while true; do
@@ -229,14 +230,16 @@ function ensure-boost() {
     BOOSTVERSION=$( grep "#define BOOST_VERSION" "$BOOST_ROOT/include/boost/version.hpp" 2>/dev/null | tail -1 | tr -s ' ' | cut -d\  -f3 || true )
     if [[ "${BOOSTVERSION}" != "${BOOST_VERSION_MAJOR}0${BOOST_VERSION_MINOR}0${BOOST_VERSION_PATCH}" ]]; then
         B2_FLAGS="-q -j${JOBS} --with-iostreams --with-date_time --with-filesystem --with-system --with-program_options --with-chrono --with-test install"
+        BOOTSTRAP_FLAGS=""
         if [[ $ARCH == "Linux" ]] && $PIN_COMPILER; then
             B2_FLAGS="toolset=clang cxxflags='-stdlib=libc++ -D__STRICT_ANSI__ -nostdinc++ -I${CLANG_ROOT}/include/c++/v1' linkflags='-stdlib=libc++' link=static threading=multi --with-iostreams --with-date_time --with-filesystem --with-system --with-program_options --with-chrono --with-test -q -j${JOBS} install"
+            BOOTSTRAP_FLAGS="--with-toolset=clang"
         fi
 		execute bash -c "cd $SRC_DIR && \
         curl -LO https://dl.bintray.com/boostorg/release/$BOOST_VERSION_MAJOR.$BOOST_VERSION_MINOR.$BOOST_VERSION_PATCH/source/boost_$BOOST_VERSION.tar.bz2 \
         && tar -xjf boost_$BOOST_VERSION.tar.bz2 \
         && cd $BOOST_ROOT \
-        && ./bootstrap.sh --prefix=$BOOST_ROOT \
+        && ./bootstrap.sh ${BOOTSTRAP_FLAGS} --prefix=$BOOST_ROOT \
         && ./b2 ${B2_FLAGS} \
         && cd .. \
         && rm -f boost_$BOOST_VERSION.tar.bz2 \
@@ -359,13 +362,14 @@ function ensure-yum-packages() {
     done
     echo "${COLOR_CYAN}[Ensuring for installed package dependencies]${COLOR_NC}"
     OLDIFS="$IFS"; IFS=$','
-    while read -r testee tester; do
+    # || [[ -n "$testee" ]]; needed to see last line of deps file (https://stackoverflow.com/questions/12916352/shell-script-read-missing-last-line)
+    while read -r testee tester || [[ -n "$testee" ]]; do
         if [[ ! -z $(eval $tester $testee) ]]; then
             echo " - ${testee} ${COLOR_GREEN}found!${COLOR_NC}"
         else
             DEPS=$DEPS"${testee} "
             echo " - ${testee} ${COLOR_RED}NOT${COLOR_NC} found."
-            (( COUNT++ ))
+            (( COUNT+=1 ))
         fi
     done < $DEPS_FILE
     IFS=$OLDIFS
@@ -402,7 +406,8 @@ function ensure-brew-packages() {
     echo "${COLOR_CYAN}[Ensuring HomeBrew dependencies]${COLOR_NC}"
     OLDIFS="$IFS"
     IFS=$','
-    while read -r name path; do
+    # || [[ -n "$nmae" ]]; needed to see last line of deps file (https://stackoverflow.com/questions/12916352/shell-script-read-missing-last-line)
+    while read -r name path || [[ -n "$name" ]]; do
         if [[ -f $path ]] || [[ -d $path ]]; then
             echo " - ${name} ${COLOR_GREEN}found!${COLOR_NC}"
             continue
@@ -416,7 +421,7 @@ function ensure-brew-packages() {
         fi
         DEPS=$DEPS"${name} "
         echo " - ${name} ${COLOR_RED}NOT${COLOR_NC} found."
-        (( COUNT++ ))
+        (( COUNT+=1 ))
     done < $DEPS_FILE
     if [[ $COUNT > 0 ]]; then
         echo ""
@@ -463,13 +468,14 @@ function ensure-apt-packages() {
     fi
     echo "${COLOR_CYAN}[Ensuring for installed package dependencies]${COLOR_NC}"
     OLDIFS="$IFS"; IFS=$','
-    while read -r testee tester; do
+    # || [[ -n "$testee" ]]; needed to see last line of deps file (https://stackoverflow.com/questions/12916352/shell-script-read-missing-last-line)
+    while read -r testee tester || [[ -n "$testee" ]]; do
         if [[ ! -z $(eval $tester $testee 2>/dev/null) ]]; then
             echo " - ${testee} ${COLOR_GREEN}found!${COLOR_NC}"
         else
             DEPS=$DEPS"${testee} "
             echo " - ${testee} ${COLOR_RED}NOT${COLOR_NC} found."
-            (( COUNT++ ))
+            (( COUNT+=1 ))
         fi
     done < $DEPS_FILE
     IFS=$OLDIFS

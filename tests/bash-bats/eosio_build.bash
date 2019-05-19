@@ -28,8 +28,7 @@ TEST_LABEL="[eosio_build]"
             # No c++!
             run bash -c "printf \"y\nn\nn\n\" | ./${SCRIPT_LOCATION}"
         fi
-        [[ ! -z $(echo "${output}" | grep "Unable to find compiler \"c++\"! Pass in the -P option if you wish for us to install it, set \$CXX to the proper binary location, or install a C++17 compiler") ]] || exit
-
+        [[ ! -z $(echo "${output}" | grep "Unable to find compiler \"c++\"! Pass in the -P option if you wish for us to install it or install a C++17 compiler and set \$CXX and \$CC to the proper binary locations.") ]] || exit
 
     fi 
 
