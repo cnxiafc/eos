@@ -162,7 +162,7 @@ function ensure-compiler() {
         export CC_COMP=$CLANG_ROOT/bin/clang
         export PATH=$CLANG_ROOT/bin:$PATH
     elif [[ $PIN_COMPILER == false ]]; then
-        which $CXX &>/dev/null || ( echo "${COLOR_RED}Unable to find compiler \"${CXX}\"! Pass in the -P option if you wish for us to install it or install a C++17 compiler and set \$CXX and \$CC to the proper binary locations. ${COLOR_NC}"; exit 1 )
+        which $CXX &>/dev/null || ( echo "${COLOR_RED}Unable to find compiler: Pass in the -P option if you wish for us to install it or install a C++17 compiler and set \$CXX and \$CC to the proper binary locations. ${COLOR_NC}"; exit 1 )
         # readlink on mac differs from linux readlink (mac doesn't have -f)
         [[ $ARCH == "Linux" ]] && READLINK_COMMAND="readlink -f" || READLINK_COMMAND="readlink"
         COMPILER_TYPE=$( eval $READLINK_COMMAND $(which $CXX) )
@@ -172,8 +172,11 @@ function ensure-compiler() {
                 ### Check for apple clang version 10 or higher
                 [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) -lt 10 ]] && export NO_CPP17=true
             else
-                ### Check for clang version 5 or higher
-                [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) -lt 5 ]] && export NO_CPP17=true
+                if [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]]; then # Check if the version message cut returns an integer
+                    [[ $( $(which $CXX) --version | cut -d ' ' -f 3 | head -n 1 | cut -d '.' -f1) < 5 ]] && export NO_CPP17=true
+                elif [[ $(clang --version | cut -d ' ' -f 4 | head -n 1 | cut -d '.' -f1) =~ ^[0-9]+$ ]]; then # Check if the version message cut returns an integer
+                    [[ $( $(which $CXX) --version | cut -d ' ' -f 4 | cut -d '.' -f 1 | head -n 1 ) < 5 ]] && export NO_CPP17=true
+                fi
             fi
         else
             ## Check for c++ version 7 or higher
