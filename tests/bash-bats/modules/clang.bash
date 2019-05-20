@@ -10,7 +10,7 @@ load ../helpers/functions
         [[ ! -z $(echo "${output}" | grep "DCMAKE_CXX_COMPILER='c++'") ]] || exit
         [[ ! -z $(echo "${output}" | grep "DCMAKE_C_COMPILER='cc'") ]] || exit
     elif [[ $NAME == "Ubuntu" ]]; then
-        install-package clang BYPASS_DRYRUN
+        install-package clang BYPASS_DRYRUN 1>/dev/null
         run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
         ## CLANG already exists (c++/default) (Ubuntu doesn't have clang>7, so we need to make sure it installs Clang 8)
         [[ ! -z $(echo "${output}" | grep "PIN_COMPILER: false") ]] || exit
@@ -28,6 +28,6 @@ load ../helpers/functions
     export CXX=c2234
     export CC=ewwqd
     run bash -c "./$SCRIPT_LOCATION -y"
-    [[ ! -z $(echo "${output}" | grep "Unable to find compiler \"c2234\"") ]] || exit
+    [[ ! -z $(echo "${output}" | grep "Unable to find compiler") ]] || exit
     
 }

@@ -28,8 +28,7 @@ TEST_LABEL="[eosio_build]"
             # No c++!
             run bash -c "printf \"y\nn\nn\n\" | ./${SCRIPT_LOCATION}"
         fi
-        [[ ! -z $(echo "${output}" | grep "Unable to find compiler \"c++\"! Pass in the -P option if you wish for us to install it or install a C++17 compiler and set \$CXX and \$CC to the proper binary locations.") ]] || exit
-
+        [[ ! -z $(echo "${output}" | grep "Unable to find compiler") ]] || exit
     fi 
 
     # -P with -y
@@ -38,11 +37,7 @@ TEST_LABEL="[eosio_build]"
     [[ "${output}" =~ -DCMAKE_TOOLCHAIN_FILE=\'.*/scripts/../build/pinned_toolchain.cmake\' ]] || exit
     [[ "${output}" =~ "Clang 8 successfully installed" ]] || exit
     # -P with prompts
-    if [[ $ARCH == "Darwin" ]]; then
-        run bash -c "printf \"n\nn\nn\n\" | ./$SCRIPT_LOCATION -P"
-    else
-        run bash -c "printf \"y\nn\nn\n\" | ./$SCRIPT_LOCATION -P"
-    fi
+    run bash -c "printf \"n\nn\nn\n\" | ./$SCRIPT_LOCATION -P"
     [[ "${output}" =~ .*User.aborted.* ]] || exit
     # lack of -m
     [[ ! -z $(echo "${output}" | grep "ENABLE_MONGO: false") ]] || exit
