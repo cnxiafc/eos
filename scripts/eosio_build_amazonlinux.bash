@@ -17,7 +17,7 @@ fi
 # Handle clang/compiler
 ensure-compiler
 # Ensure packages exist
-([[ $PIN_COMPILER == false ]] && [[ $BUILD_CLANG == false ]]) && EXTRA_DEPS=(gcc-c++,rpm -qa)
+($PIN_COMPILER && $BUILD_CLANG) && EXTRA_DEPS=(gcc-c++,rpm\ -qa)
 ensure-yum-packages $DEPS_FILE $(echo ${EXTRA_DEPS[@]})
 # CMAKE Installation
 ensure-cmake
