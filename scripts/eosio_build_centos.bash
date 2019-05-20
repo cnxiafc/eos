@@ -26,7 +26,8 @@ fi
 # Handle clang/compiler
 ensure-compiler
 # Ensure packages exist
-ensure-yum-packages "${REPO_ROOT}/scripts/eosio_build_centos7_deps"
+($PIN_COMPILER && $BUILD_CLANG) && EXTRA_DEPS=(gcc-c++,rpm\ -qa)
+ensure-yum-packages "${REPO_ROOT}/scripts/eosio_build_centos7_deps" $(echo ${EXTRA_DEPS[@]})
 export PYTHON3PATH="/opt/rh/rh-python36"
 if $DRYRUN || [ -d $PYTHON3PATH ]; then
 	echo "${COLOR_CYAN}[Enabling python36]${COLOR_NC}"
