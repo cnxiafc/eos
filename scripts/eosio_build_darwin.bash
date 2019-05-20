@@ -21,25 +21,7 @@ echo "${COLOR_CYAN}[Ensuring Ruby installation]${COLOR_NC}"
 if ! RUBY=$( command -v ruby ); then echo " - Ruby must be installed in order to proceed!" && exit 1;
 else echo " - Ruby installation found @ ${RUBY}"; fi
 
-echo "${COLOR_CYAN}[Ensuring HomeBrew installation]${COLOR_NC}"
-if ! BREW=$( command -v brew ); then
-	while true; do
-		[[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install HomeBrew? (y/n)?${COLOR_NC} " PROCEED
-		case $PROCEED in
-			"" ) echo "What would you like to do?";;
-			0 | true | [Yy]* )
-				execute "${XCODESELECT}" --install
-				if ! execute "${RUBY}" -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"; then
-					echo "Unable to install HomeBrew at this time." && exit 1;
-				else BREW=$( command -v brew ); fi
-			break;;
-			1 | false | [Nn]* ) echo "${COLOR_RED} - User aborted required HomeBrew installation${COLOR_NC}"; exit 1;;
-			* ) echo "Please type 'y' for yes or 'n' for no.";;
-		esac
-	done
-else
-	echo " - HomeBrew installation found @ ${BREW}"
-fi
+ensure-homebrew
 
 if [ ! -d /usr/local/Frameworks ]; then
 	echo "${COLOR_YELLOW}/usr/local/Frameworks is necessary to brew install python@3. Run the following commands as sudo and try again:${COLOR_NC}"

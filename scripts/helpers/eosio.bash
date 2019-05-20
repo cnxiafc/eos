@@ -96,6 +96,28 @@ function prompt-mongo-install() {
     fi
 }
 
+function ensure-homebrew() {
+    echo "${COLOR_CYAN}[Ensuring HomeBrew installation]${COLOR_NC}"
+    if ! BREW=$( command -v brew ); then
+        while true; do
+            [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to install HomeBrew? (y/n)?${COLOR_NC}" &&  read -p " " PROCEED
+            case $PROCEED in
+                "" ) echo "What would you like to do?";;
+                0 | true | [Yy]* )
+                    execute "${XCODESELECT}" --install 2>/dev/null || true
+                    if ! execute "${RUBY}" -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"; then
+                        echo "${COLOR_RED}Unable to install HomeBrew!${COLOR_NC}" && exit 1;
+                    else BREW=$( command -v brew ); fi
+                break;;
+                1 | false | [Nn]* ) echo "${COLOR_RED} - User aborted required HomeBrew installation.${COLOR_NC}"; exit 1;;
+                * ) echo "Please type 'y' for yes or 'n' for no.";;
+            esac
+        done
+    else
+        echo " - HomeBrew installation found @ ${BREW}"
+    fi
+}
+
 function ensure-scl() {
     echo "${COLOR_CYAN}[Ensuring installation of Centos Software Collections Repository]${COLOR_NC}" # Needed for rh-python36
     SCL=$( rpm -qa | grep -E 'centos-release-scl-[0-9].*' || true )
