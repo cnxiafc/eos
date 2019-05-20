@@ -14,20 +14,17 @@ echo ""
 
 # Repo necessary for rh-python3 and devtoolset-7
 ensure-scl
-# GCC7 for Centos
-if [[ $PIN_COMPILER == false ]]; then
-	ensure-devtoolset
-	if [[ -d /opt/rh/devtoolset-7 ]]; then
-		echo "${COLOR_CYAN}[Enabling Centos devtoolset-7 (so we can use GCC 7)]${COLOR_NC}"
-		execute-always source /opt/rh/devtoolset-7/enable
-		echo " - ${COLOR_GREEN}Centos devtoolset-7 successfully enabled!${COLOR_NC}"
-	fi
+# GCC7 for Centos / Needed for CMAKE install even if we're pinning
+ensure-devtoolset
+if [[ -d /opt/rh/devtoolset-7 ]]; then
+	echo "${COLOR_CYAN}[Enabling Centos devtoolset-7 (so we can use GCC 7)]${COLOR_NC}"
+	execute-always source /opt/rh/devtoolset-7/enable
+	echo " - ${COLOR_GREEN}Centos devtoolset-7 successfully enabled!${COLOR_NC}"
 fi
 # Handle clang/compiler
 ensure-compiler
 # Ensure packages exist
-($PIN_COMPILER && $BUILD_CLANG) && EXTRA_DEPS=(gcc-c++,rpm\ -qa)
-ensure-yum-packages "${REPO_ROOT}/scripts/eosio_build_centos7_deps" $(echo ${EXTRA_DEPS[@]})
+ensure-yum-packages "${REPO_ROOT}/scripts/eosio_build_centos7_deps"
 export PYTHON3PATH="/opt/rh/rh-python36"
 if $DRYRUN || [ -d $PYTHON3PATH ]; then
 	echo "${COLOR_CYAN}[Enabling python36]${COLOR_NC}"
