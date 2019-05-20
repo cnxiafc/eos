@@ -78,6 +78,7 @@ if $INSTALL_MONGO; then
 	else
 		echo " - MongoDB C driver found with correct version @ ${MONGO_C_DRIVER_ROOT}."
 	fi
+	echo "${COLOR_CYAN}[Ensuring MongoDB CXX driver installation]${COLOR_NC}"
 	if [[ ! -d $MONGO_CXX_DRIVER_ROOT ]]; then
 		execute bash -c "cd $SRC_DIR && \
 		curl -L https://github.com/mongodb/mongo-cxx-driver/archive/r$MONGO_CXX_DRIVER_VERSION.tar.gz -o mongo-cxx-driver-r$MONGO_CXX_DRIVER_VERSION.tar.gz \

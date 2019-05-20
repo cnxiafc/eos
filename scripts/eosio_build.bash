@@ -195,6 +195,10 @@ execute cd $REPO_ROOT
 echo ""
 echo "${COLOR_CYAN}========================================================================"
 echo "======================= ${COLOR_WHITE}Starting EOSIO Build${COLOR_CYAN} ===========================${COLOR_NC}"
+if $VERBOSE; then
+   echo "CXX: $CXX"
+   echo "CC: $CC"
+fi
 execute cd $BUILD_DIR
 # LOCAL_CMAKE_FLAGS
 $ENABLE_MONGO && LOCAL_CMAKE_FLAGS="-DBUILD_MONGO_DB_PLUGIN=true ${LOCAL_CMAKE_FLAGS}" # Enable Mongo DB Plugin if user has enabled -m
