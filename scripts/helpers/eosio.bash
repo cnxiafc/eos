@@ -363,8 +363,8 @@ function ensure-yum-packages() {
     if [[ ! -z "${2}" ]]; then # Handle EXTRA_DEPS passed in and add them to temp DEPS_FILE
         printf "\n" >> $DEPS_FILE # Avoid needing a new line at the end of deps files
         OLDIFS="$IFS"; IFS=$''
-        _2=("$(echo $2 | sed 's/-s /-s\n/g')")
-        for ((i = 0; i < ${#_2[@]}; i++)); do echo "${_2[$i]}\n" | sed 's/-s\\n/-s/g' >> $DEPS_FILE; done
+        _2=("$(echo $2 | sed 's/-qa /-qa\n/g')")
+        for ((i = 0; i < ${#_2[@]}; i++)); do echo "${_2[$i]}\n" | sed 's/-qa\\n/-qa/g' >> $DEPS_FILE; done
     fi
     echo "${COLOR_CYAN}[Ensuring YUM installation]${COLOR_NC}"
     if ! YUM=$( command -v yum 2>/dev/null ); then echo " - YUM must be installed to compile EOS.IO." && exit 1
