@@ -72,8 +72,8 @@ steps:
 
   - label: ":aws: Amazon Linux 2 Build"
     command:
-      - "VERBOSE=true ./scripts/eosio_build.bash -y -m"
-      - "tar -pczf build.tar.gz build; if [[ ! -f build.tar.gz ]]; then echo 'ERROR: No build.tar.gz artifact found!' && exit 1; fi"
+      - "cd eos && VERBOSE=true ./scripts/eosio_build.bash -y -m"
+      - "cd eos && tar -pczf build.tar.gz build; if [[ ! -f build.tar.gz ]]; then echo 'ERROR: No build.tar.gz artifact found!' && exit 1; fi"
     agents:
       queue: "automation-large-builder-fleet"
     artifact_paths: "build.tar.gz"
@@ -87,13 +87,13 @@ steps:
         shell: ["/bin/bash", "-i", "-e", "-c"]
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:amazonlinux2_1-9-0-develop"
-        propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 120
 
   - label: ":centos: CentOS 7 Build"
     command:
-      - "VERBOSE=true ./scripts/eosio_build.bash -y -m"
-      - "tar -pczf build.tar.gz build; if [[ ! -f build.tar.gz ]]; then echo 'ERROR: No build.tar.gz artifact found!' && exit 1; fi"
+      - "cd eos && VERBOSE=true ./scripts/eosio_build.bash -y -m"
+      - "cd eos && tar -pczf build.tar.gz build; if [[ ! -f build.tar.gz ]]; then echo 'ERROR: No build.tar.gz artifact found!' && exit 1; fi"
     agents:
       queue: "automation-large-builder-fleet"
     artifact_paths: "build.tar.gz"
@@ -108,6 +108,7 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:centos7_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 120
 
   - label: ":ubuntu: Ubuntu 16.04 Build"
@@ -128,6 +129,7 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:ubuntu16_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 120
 
   - label: ":ubuntu: Ubuntu 18.04 Build"
@@ -148,6 +150,7 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:ubuntu18_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 120
 
   - wait
@@ -204,8 +207,8 @@ steps:
   # AmazonLinux #
   - label: ":aws: Amazon Linux 2 Tests"
     command:
-      - "echo \"--- :arrow_down: Downloading Build Directory\" && buildkite-agent artifact download \"build.tar.gz\" . --step \":aws: Amazon Linux 2 Build\""
-      - "VERBOSE=true ./scripts/parallel-test.bash"
+      - "echo \"--- :arrow_down: Downloading Build Directory\" && cd eos && buildkite-agent artifact download \"build.tar.gz\" . --step \":aws: Amazon Linux 2 Build\""
+      - "cd eos && VERBOSE=true ./scripts/parallel-test.bash"
     agents:
       queue: "automation-large-builder-fleet"
     plugins:
@@ -219,12 +222,13 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:amazonlinux2_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 60
 
   - label: ":aws: Amazon Linux 2 NP Tests"
     command:
-      - "echo \"--- :arrow_down: Downloading Build Directory\" && buildkite-agent artifact download \"build.tar.gz\" . --step \":aws: Amazon Linux 2 Build\""
-      - "VERBOSE=true ./scripts/serial-test.bash"
+      - "echo \"--- :arrow_down: Downloading Build Directory\" && cd eos && buildkite-agent artifact download \"build.tar.gz\" . --step \":aws: Amazon Linux 2 Build\""
+      - "cd eos && VERBOSE=true ./scripts/serial-test.bash"
     agents:
       queue: "automation-large-builder-fleet"
     plugins:
@@ -238,13 +242,14 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:amazonlinux2_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 60
 
   # CentOS #
   - label: ":centos: CentOS 7 Tests"
     command:
-      - "echo \"--- :arrow_down: Downloading Build Directory\" && buildkite-agent artifact download \"build.tar.gz\" . --step \":centos: CentOS 7 Build\""
-      - "VERBOSE=true ./scripts/parallel-test.bash"
+      - "echo \"--- :arrow_down: Downloading Build Directory\" && cd eos && buildkite-agent artifact download \"build.tar.gz\" . --step \":centos: CentOS 7 Build\""
+      - "cd eos && VERBOSE=true ./scripts/parallel-test.bash"
     agents:
       queue: "automation-large-builder-fleet"
     plugins:
@@ -258,12 +263,13 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:centos7_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 60
 
   - label: ":centos: CentOS 7 NP Tests"
     command:
-      - "echo \"--- :arrow_down: Downloading Build Directory\" && buildkite-agent artifact download \"build.tar.gz\" . --step \":centos: CentOS 7 Build\""
-      - "VERBOSE=true ./scripts/serial-test.bash"
+      - "echo \"--- :arrow_down: Downloading Build Directory\" && cd eos && buildkite-agent artifact download \"build.tar.gz\" . --step \":centos: CentOS 7 Build\""
+      - "cd eos && VERBOSE=true ./scripts/serial-test.bash"
     agents:
       queue: "automation-large-builder-fleet"
     plugins:
@@ -277,13 +283,14 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:centos7_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 60
 
   # Ubuntu #
   - label: ":ubuntu: Ubuntu 16.04 Tests"
     command:
-      - "echo \"--- :arrow_down: Downloading Build Directory\" && buildkite-agent artifact download \"build.tar.gz\" . --step \":ubuntu: Ubuntu 16.04 Build\""
-      - "VERBOSE=true ./scripts/parallel-test.bash"
+      - "echo \"--- :arrow_down: Downloading Build Directory\" && cd eos && buildkite-agent artifact download \"build.tar.gz\" . --step \":ubuntu: Ubuntu 16.04 Build\""
+      - "cd eos && VERBOSE=true ./scripts/parallel-test.bash"
     agents:
       queue: "automation-large-builder-fleet"
     plugins:
@@ -297,12 +304,13 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:ubuntu16_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 60
 
   - label: ":ubuntu: Ubuntu 16.04 NP Tests"
     command:
-      - "echo \"--- :arrow_down: Downloading Build Directory\" && buildkite-agent artifact download \"build.tar.gz\" . --step \":ubuntu: Ubuntu 16.04 Build\""
-      - "VERBOSE=true ./scripts/serial-test.bash"
+      - "echo \"--- :arrow_down: Downloading Build Directory\" && cd eos && buildkite-agent artifact download \"build.tar.gz\" . --step \":ubuntu: Ubuntu 16.04 Build\""
+      - "cd eos && VERBOSE=true ./scripts/serial-test.bash"
     agents:
       queue: "automation-large-builder-fleet"
     plugins:
@@ -316,12 +324,13 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:ubuntu16_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 60
 
   - label: ":ubuntu: Ubuntu 18.04 Tests"
     command:
-      - "echo \"--- :arrow_down: Downloading Build Directory\" && buildkite-agent artifact download \"build.tar.gz\" . --step \":ubuntu: Ubuntu 18.04 Build\""
-      - "VERBOSE=true ./scripts/parallel-test.bash"
+      - "echo \"--- :arrow_down: Downloading Build Directory\" && cd eos && buildkite-agent artifact download \"build.tar.gz\" . --step \":ubuntu: Ubuntu 18.04 Build\""
+      - "cd eos && VERBOSE=true ./scripts/parallel-test.bash"
     agents:
       queue: "automation-large-builder-fleet"
     plugins:
@@ -335,12 +344,13 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:ubuntu18_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 60
 
   - label: ":ubuntu: Ubuntu 18.04 NP Tests"
     command:
-      - "echo \"--- :arrow_down: Downloading Build Directory\" && buildkite-agent artifact download \"build.tar.gz\" . --step \":ubuntu: Ubuntu 18.04 Build\""
-      - "VERBOSE=true ./scripts/serial-test.bash"
+      - "echo \"--- :arrow_down: Downloading Build Directory\" && cd eos && buildkite-agent artifact download \"build.tar.gz\" . --step \":ubuntu: Ubuntu 18.04 Build\""
+      - "cd eos && VERBOSE=true ./scripts/serial-test.bash"
     agents:
       queue: "automation-large-builder-fleet"
     plugins:
@@ -354,6 +364,7 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:ubuntu18_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     timeout: 60
 
   - wait:
@@ -373,6 +384,7 @@ steps:
   - label: ":centos: CentOS 7 Package Builder"
     command: |
         echo "--- :arrow_down: Downloading build directory"
+        cd eos
         echo \"--- :arrow_down: Downloading Build Directory\" && buildkite-agent artifact download "build.tar.gz" . --step ":centos: CentOS 7 Build"
         tar -zxf build.tar.gz
         echo "+++ :microscope: Starting package build"
@@ -383,7 +395,7 @@ steps:
         mkdir -p /root/rpmbuild/SOURCES
         mkdir -p /root/rpmbuild/SPECS
         mkdir -p /root/rpmbuild/SRPMS
-        cd /data/job/build/packages
+        cd /home/cicd/eos/build/packages
         bash generate_package.sh rpm
     agents:
       queue: "automation-large-builder-fleet"
@@ -400,6 +412,7 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:centos7_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     env:
       OS: "el7"
       PKGTYPE: "rpm"
@@ -407,10 +420,11 @@ steps:
 
   - command: | # Ubuntu 16.04 Package Builder
         echo "--- :arrow_down: Downloading build directory"
+        cd eos
         echo \"--- :arrow_down: Downloading Build Directory\" && buildkite-agent artifact download "build.tar.gz" . --step ":ubuntu: Ubuntu 16.04 Build"
         tar -zxf build.tar.gz
         echo "+++ :microscope: Starting package build"
-        cd /data/job/build/packages
+        cd /home/cicd/eos/build/packages
         bash generate_package.sh deb
     label: ":ubuntu: Ubuntu 16.04 Package Builder"
     agents:
@@ -428,6 +442,7 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:ubuntu16_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     env:
       OS: "ubuntu-16.04"
       PKGTYPE: "deb"
@@ -435,10 +450,11 @@ steps:
 
   - command: | # Ubuntu 18.04 Package Builder
         echo "--- :arrow_down: Downloading build directory"
+        cd eos
         echo \"--- :arrow_down: Downloading Build Directory\" && buildkite-agent artifact download "build.tar.gz" . --step ":ubuntu: Ubuntu 18.04 Build"
         tar -zxf build.tar.gz
         echo "+++ :microscope: Starting package build"
-        cd /data/job/build/packages
+        cd /home/cicd/eos/build/packages
         bash generate_package.sh deb
     label: ":ubuntu: Ubuntu 18.04 Package Builder"
     agents:
@@ -456,6 +472,7 @@ steps:
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:ubuntu18_1-9-0-develop"
         propagate-environment: true
+        workdir: "/home/cicd/eos"
     env:
       OS: "ubuntu-18.04"
       PKGTYPE: "deb"
