@@ -42,5 +42,5 @@ export TEST_LABEL="[eosio_build_ubuntu]"
     [[ -z $(echo "${output}" | grep "-   NOT found.") ]] || exit
     [[ -z $(echo "${output}" | grep lcov.*found.) ]] || exit
     [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] || exit
-    [[ "$(echo ${VERSION_ID})" == "16.04" ]] && uninstall-package clang WETRUN &>/dev/null || uninstall-package build-essential WETRUN
+    [[ "$(echo ${VERSION_ID})" == "16.04" ]] && uninstall-package clang WETRUN || uninstall-package build-essential WETRUN
 }

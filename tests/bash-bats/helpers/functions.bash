@@ -24,6 +24,6 @@ function teardown() { # teardown is run once after each test, even if it fails
   uninstall-package centos-release-scl WETRUN &>/dev/null
   uninstall-package gcc-c++ WETRUN &>/dev/null
   uninstall-package build-essential WETRUN &>/dev/null
-
+  true # Needed
 }
 trap teardown EXIT
