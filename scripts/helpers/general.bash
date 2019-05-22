@@ -124,8 +124,9 @@ function uninstall-package() {
     [[ $2 == "WETRUN" ]] && EXECUTION_FUNCTION="execute-always"
     ( [[ $2 =~ "--" ]] || [[ $3 =~ "--" ]] ) && OPTIONS="${2}${3}"
     [[ $CURRENT_USER != "root" ]] && [[ ! -z $SUDO_LOCATION ]] && SUDO_COMMAND="$SUDO_LOCATION -E"
-    ( [[ $NAME =~ "Amazon Linux" ]] || [[ $NAME == "CentOS Linux" ]] ) && eval $EXECUTION_FUNCTION $SUDO_COMMAND $YUM $OPTIONS remove -y $1
-    ( [[ $NAME =~ "Ubuntu" ]] ) && eval $EXECUTION_FUNCTION $SUDO_COMMAND $APTGET $OPTIONS remove -y $1
+    # Check if the packages exist before uninstalling them. This speeds things up for tests.
+    ( ( [[ $NAME =~ "Amazon Linux" ]] || [[ $NAME == "CentOS Linux" ]] ) && [[ ! -z $(rpm -qa $1) ]] ) && eval $EXECUTION_FUNCTION $SUDO_COMMAND $YUM $OPTIONS remove -y $1
+    ( [[ $NAME =~ "Ubuntu" ]] && $(dpkg -s $1 &>/dev/null) ) && eval $EXECUTION_FUNCTION $SUDO_COMMAND $APTGET $OPTIONS remove -y $1
   fi
   true
 }
