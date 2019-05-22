@@ -169,7 +169,7 @@ function ensure-build-essential() {
             case $PROCEED in
                 "" ) echo "What would you like to do?";;
                 0 | true | [Yy]* ) 
-                    if install-package build-essential QUIET; then
+                    if install-package build-essential; then
                         echo " - ${COLOR_GREEN}Installed build-essential${COLOR_NC}"
                     else
                         echo " - ${COLOR_GREEN}Install of build-essential failed. Please try a manual install.${COLOR_NC}"
@@ -538,12 +538,7 @@ function ensure-apt-packages() {
                 "" ) echo "What would you like to do?";;
                 0 | true | [Yy]* )
                     for DEP in $DEPS; do
-                        if install-package $DEP QUIET; then
-                            echo " - ${COLOR_GREEN}Installed ${DEP}!${COLOR_NC}"
-                        else
-                            echo " - ${COLOR_GREEN}Install of ${DEP} failed. Please try a manual install.${COLOR_NC}"
-                            exit 1
-                        fi
+                        install-package $DEP
                     done
                 break;;
                 1 | false | [Nn]* ) echo " ${COLOR_RED}- User aborted installation of required dependencies.${COLOR_NC}"; exit;;

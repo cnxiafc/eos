@@ -110,7 +110,6 @@ function install-package() {
   if [[ $ARCH == "Linux" ]]; then
     EXECUTION_FUNCTION="execute"
     [[ $2 == "WETRUN" ]] && EXECUTION_FUNCTION="execute-always"
-    [[ $2 == "QUIET" ]] && EXECUTION_FUNCTION="execute-quiet"
     ( [[ $2 =~ "--" ]] || [[ $3 =~ "--" ]] ) && OPTIONS="${2}${3}"
     [[ $CURRENT_USER != "root" ]] && [[ ! -z $SUDO_LOCATION ]] && SUDO_COMMAND="$SUDO_LOCATION -E"
     ( [[ $NAME =~ "Amazon Linux" ]] || [[ $NAME == "CentOS Linux" ]] ) && eval $EXECUTION_FUNCTION $SUDO_COMMAND $YUM $OPTIONS install -y $1
@@ -123,7 +122,6 @@ function uninstall-package() {
   if [[ $ARCH == "Linux" ]]; then
     EXECUTION_FUNCTION="execute"
     [[ $2 == "WETRUN" ]] && EXECUTION_FUNCTION="execute-always"
-    [[ $2 == "QUIET" ]] && EXECUTION_FUNCTION="execute-quiet"
     ( [[ $2 =~ "--" ]] || [[ $3 =~ "--" ]] ) && OPTIONS="${2}${3}"
     [[ $CURRENT_USER != "root" ]] && [[ ! -z $SUDO_LOCATION ]] && SUDO_COMMAND="$SUDO_LOCATION -E"
     ( [[ $NAME =~ "Amazon Linux" ]] || [[ $NAME == "CentOS Linux" ]] ) && eval $EXECUTION_FUNCTION $SUDO_COMMAND $YUM $OPTIONS remove -y $1
