@@ -41,9 +41,9 @@ export TEST_LABEL="[eosio_build_amazonlinux]"
     [[ ! -z $(echo "${output}" | grep "make -j${CPU_CORES}") ]] || exit
     [[ -z $(echo "${output}" | grep "MongoDB C++ driver successfully installed") ]] || exit # Mongo is off
     # Ensure PIN_COMPILER=false uses proper flags for the various installs
-    install-package gcc-c++ BYPASS_DRYRUN
+    install-package gcc-c++ WETRUN
     run bash -c "./$SCRIPT_LOCATION -y"
     [[ ! -z $(echo "${output}" | grep " -G 'Unix Makefiles'") ]] || exit # CMAKE
     [[ ! -z $(echo "${output}" | grep " --with-iostreams --with-date_time") ]] || exit # BOOST
-    uninstall-package gcc-c++ BYPASS_DRYRUN
+    uninstall-package gcc-c++ WETRUN
 }

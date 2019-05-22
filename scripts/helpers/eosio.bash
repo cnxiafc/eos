@@ -27,6 +27,7 @@ fi
 
 function setup() {
     if $VERBOSE; then
+        echo "VERBOSE: ${VERBOSE}"
         echo "DRYRUN: ${DRYRUN}"
         echo "TEMP_DIR: ${TEMP_DIR}"
         echo "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}"
@@ -41,6 +42,7 @@ function setup() {
         echo "ENABLE_DOXYGEN: ${ENABLE_DOXYGEN}"
         echo "ENABLE_MONGO: ${ENABLE_MONGO}"
         echo "INSTALL_MONGO: ${INSTALL_MONGO}"
+        echo "SUDO_LOCATION: ${SUDO_LOCATION}"
         echo "PIN_COMPILER: ${PIN_COMPILER}"
     fi
     [[ -d $BUILD_DIR ]] && execute rm -rf $BUILD_DIR # cleanup old build directory
@@ -101,6 +103,7 @@ function ensure-homebrew() {
     if ! BREW=$( command -v brew ); then
         while true; do
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to install HomeBrew? (y/n)?${COLOR_NC}" &&  read -p " " PROCEED
+            echo ""
             case $PROCEED in
                 "" ) echo "What would you like to do?";;
                 0 | true | [Yy]* )
@@ -124,9 +127,10 @@ function ensure-scl() {
     if [[ -z "${SCL}" ]]; then
         while true; do
             [[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to install and enable the Centos Software Collections Repository? (y/n)?${COLOR_NC} " PROCEED
+            echo ""
             case $PROCEED in
                 "" ) echo "What would you like to do?";;
-                0 | true | [Yy]* ) execute $( [[ $CURRENT_USER == "root" ]] || echo /usr/bin/sudo -E ) $YUM -y --enablerepo=extras install centos-release-scl; break;;
+                0 | true | [Yy]* ) install-package centos-release-scl "--enablerepo=extras"; break;;
                 1 | false | [Nn]* ) echo " - User aborted installation of required Centos Software Collections Repository."; exit 1;;
                 * ) echo "Please type 'y' for yes or 'n' for no.";;
             esac
@@ -141,7 +145,7 @@ function ensure-devtoolset() {
     DEVTOOLSET=$( rpm -qa | grep -E 'devtoolset-7-[0-9].*' || true )
     if [[ -z "${DEVTOOLSET}" ]]; then
         while true; do
-            [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to install it? (y/n)?${COLOR_NC}" && read -p " " PROCEED
+            [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Not Found: Do you wish to install it? (y/n)?${COLOR_NC}" && read -p " " PROCEED
             echo ""
             case $PROCEED in
                 "" ) echo "What would you like to do?";;
@@ -164,7 +168,14 @@ function ensure-build-essential() {
             echo ""
             case $PROCEED in
                 "" ) echo "What would you like to do?";;
-                0 | true | [Yy]* ) install-package build-essential; break;;
+                0 | true | [Yy]* ) 
+                    if install-package build-essential QUIET; then
+                        echo " - ${COLOR_GREEN}Installed build-essential${COLOR_NC}"
+                    else
+                        echo " - ${COLOR_GREEN}Install of build-essential failed. Please try a manual install.${COLOR_NC}"
+                        exit 1
+                    fi
+                break;;
                 1 | false | [Nn]* ) echo " - User aborted installation of build-essential."; break;;
                 * ) echo "Please type 'y' for yes or 'n' for no.";;
             esac
@@ -366,26 +377,17 @@ function ensure-yum-packages() {
         _2=("$(echo $2 | sed 's/-qa /-qa\n/g')")
         for ((i = 0; i < ${#_2[@]}; i++)); do echo "${_2[$i]}\n" | sed 's/-qa\\n/-qa/g' >> $DEPS_FILE; done
     fi
-    echo "${COLOR_CYAN}[Ensuring YUM installation]${COLOR_NC}"
-    if ! YUM=$( command -v yum 2>/dev/null ); then echo " - YUM must be installed to compile EOS.IO." && exit 1
-    else echo "Yum installation found at ${YUM}."; fi
     while true; do
         [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to update YUM repositories? (y/n)?${COLOR_NC}" && read -p " " PROCEED
+        echo ""
         case $PROCEED in
             "" ) echo "What would you like to do?";;
-            0 | true | [Yy]* )
-                if ! execute $( [[ $CURRENT_USER == "root" ]] || echo /usr/bin/sudo -E ) $YUM -y update; then
-                    echo " - ${COLOR_RED}YUM update failed.${COLOR_NC}"
-                    exit 1;
-                else
-                    echo " - ${COLOR_GREEN}YUM update complete.${COLOR_NC}"
-                fi
-            break;;
+            0 | true | [Yy]* ) execute eval $( [[ $CURRENT_USER == "root" ]] || echo $SUDO_LOCATION -E ) $YUM -y update; break;;
             1 | false | [Nn]* ) echo " - Proceeding without update!"; break;;
             * ) echo "Please type 'y' for yes or 'n' for no.";;
         esac
     done
-    echo "${COLOR_CYAN}[Ensuring for installed package dependencies]${COLOR_NC}"
+    echo "${COLOR_CYAN}[Ensuring package dependencies]${COLOR_NC}"
     OLDIFS="$IFS"; IFS=$','
     # || [[ -n "$testee" ]]; needed to see last line of deps file (https://stackoverflow.com/questions/12916352/shell-script-read-missing-last-line)
     while read -r testee tester || [[ -n "$testee" ]]; do
@@ -398,23 +400,29 @@ function ensure-yum-packages() {
         fi
     done < $DEPS_FILE
     IFS=$OLDIFS
+    OLDIFS="$IFS"; IFS=$' '
     echo ""
     if [[ $COUNT > 0 ]]; then
         while true; do
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to install missing dependencies? (y/n)?${COLOR_NC}" && read -p " " PROCEED
+            echo ""
             case $PROCEED in
                 "" ) echo "What would you like to do?";;
                 0 | true | [Yy]* )
-                    execute eval $( [[ $CURRENT_USER == "root" ]] || echo /usr/bin/sudo -E ) $YUM -y install $DEPS
+                    for DEP in $DEPS; do
+                        install-package $DEP
+                    done
                 break;;
                 1 | false | [Nn]* ) echo " ${COLOR_RED}- User aborted installation of required dependencies.${COLOR_NC}"; exit;;
                 * ) echo "Please type 'y' for yes or 'n' for no.";;
             esac
         done
+        echo ""
     else
         echo "${COLOR_GREEN} - No required package dependencies to install.${COLOR_NC}"
         echo ""
     fi
+    IFS=$OLDIFS
 }
 
 function ensure-brew-packages() {
@@ -429,8 +437,7 @@ function ensure-brew-packages() {
         for ((i = 0; i < ${#_2[@]}; i++)); do echo "${_2[$i]}\n" | sed 's/-s\\n/-s/g' >> $DEPS_FILE; done
     fi
     echo "${COLOR_CYAN}[Ensuring HomeBrew dependencies]${COLOR_NC}"
-    OLDIFS="$IFS"
-    IFS=$','
+    OLDIFS="$IFS"; IFS=$','
     # || [[ -n "$nmae" ]]; needed to see last line of deps file (https://stackoverflow.com/questions/12916352/shell-script-read-missing-last-line)
     while read -r name path || [[ -n "$name" ]]; do
         if [[ -f $path ]] || [[ -d $path ]]; then
@@ -452,6 +459,7 @@ function ensure-brew-packages() {
         echo ""
         while true; do
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to install missing dependencies? (y/n)${COLOR_NC}" && read -p " " PROCEED
+            echo ""
             case $PROCEED in
                 "" ) echo "What would you like to do?";;
                 0 | true | [Yy]* )
@@ -480,6 +488,22 @@ function ensure-brew-packages() {
     fi
 }
 
+function apt-update-prompt() {
+    if [[ $NAME == "Ubuntu" ]]; then
+        while true; do # APT
+            [[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to update APT-GET repositories before proceeding? (y/n)?${COLOR_NC} " PROCEED
+            echo ""
+            case $PROCEED in
+                "" ) echo "What would you like to do?";;
+                0 | true | [Yy]* ) execute-always $APTGET update; break;;
+                1 | false | [Nn]* ) echo " - Proceeding without update!"; break;;
+                * ) echo "Please type 'y' for yes or 'n' for no.";;
+            esac
+        done
+    fi
+    true
+}
+
 function ensure-apt-packages() {
     ( [[ -z "${1}" ]] || [[ ! -f "${1}" ]] ) && echo "\$1 must be the location of your dependency file!" && exit 1
     DEPS_FILE="${TEMP_DIR}/$(basename ${1})"
@@ -491,7 +515,7 @@ function ensure-apt-packages() {
         _2=("$(echo $2 | sed 's/-s /-s\n/g')")
         for ((i = 0; i < ${#_2[@]}; i++)); do echo "${_2[$i]}" >> $DEPS_FILE; done
     fi
-    echo "${COLOR_CYAN}[Ensuring for installed package dependencies]${COLOR_NC}"
+    echo "${COLOR_CYAN}[Ensuring package dependencies]${COLOR_NC}"
     OLDIFS="$IFS"; IFS=$','
     # || [[ -n "$testee" ]]; needed to see last line of deps file (https://stackoverflow.com/questions/12916352/shell-script-read-missing-last-line)
     while read -r testee tester || [[ -n "$testee" ]]; do
@@ -504,30 +528,23 @@ function ensure-apt-packages() {
         fi
     done < $DEPS_FILE
     IFS=$OLDIFS
+    OLDIFS="$IFS"; IFS=$' '
     if [[ $COUNT > 0 ]]; then
         echo ""
         while true; do
             [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}Do you wish to install missing dependencies? (y/n)?${COLOR_NC}" && read -p " " PROCEED
+            echo ""
             case $PROCEED in
                 "" ) echo "What would you like to do?";;
                 0 | true | [Yy]* )
-                    while true; do
-                        [[ $NONINTERACTIVE == false ]] && read -p "${COLOR_YELLOW}Do you wish to update APT-GET repositories before installing packages? (y/n)?${COLOR_NC} " PROCEED
-                        case $PROCEED in
-                            "" ) echo "What would you like to do?";;
-                            0 | true | [Yy]* )
-                                if ! execute $( [[ $CURRENT_USER == "root" ]] || echo sudo ) $APTGET update; then
-                                    echo " - ${COLOR_RED}APT-GET update failed.${COLOR_NC}"
-                                    exit 1;
-                                else
-                                    echo " - ${COLOR_GREEN}APT-GET update complete.${COLOR_NC}"
-                                fi
-                            break;;
-                            1 | false | [Nn]* ) echo " - Proceeding without update!"; break;;
-                            * ) echo "Please type 'y' for yes or 'n' for no.";;
-                        esac
+                    for DEP in $DEPS; do
+                        if install-package $DEP QUIET; then
+                            echo " - ${COLOR_GREEN}Installed ${DEP}!${COLOR_NC}"
+                        else
+                            echo " - ${COLOR_GREEN}Install of ${DEP} failed. Please try a manual install.${COLOR_NC}"
+                            exit 1
+                        fi
                     done
-                    execute eval $( [[ $CURRENT_USER == "root" ]] || echo /usr/bin/sudo -E ) $APTGET -y install $DEPS
                 break;;
                 1 | false | [Nn]* ) echo " ${COLOR_RED}- User aborted installation of required dependencies.${COLOR_NC}"; exit;;
                 * ) echo "Please type 'y' for yes or 'n' for no.";;
@@ -537,4 +554,5 @@ function ensure-apt-packages() {
         echo "${COLOR_GREEN} - No required package dependencies to install.${COLOR_NC}"
         echo ""
     fi
+    IFS=$OLDIFS
 }

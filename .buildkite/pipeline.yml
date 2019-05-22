@@ -5,7 +5,7 @@ env:
   ANKA_TEMPLATE_TAG: "clean::cicd::git-ssh::nas::brew::buildkite-agent-3.11.2"
   CHECKSUMABLE: "scripts/eosio_build*"
   MAC_TAG: "eosio_1.9.0-developv4"
-  WORKDIR: "/data/job"
+  WORKDIR: "/home/cicd"
 
 steps:
 

@@ -1,6 +1,5 @@
 git,rpm -qa
 sudo,rpm -qa
-git,rpm -qa
 procps-ng,rpm -qa
 util-linux,rpm -qa
 autoconf,rpm -qa

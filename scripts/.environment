@@ -90,4 +90,6 @@ export HOMEBREW_NO_AUTO_UPDATE=1
 export TINI_VERSION=0.18.0
 export DISK_MIN=5
 export COUNT=0
-
+export DRYRUN=${DRYRUN:-false}
+export VERBOSE=${VERBOSE:-false}
+export SUDO_LOCATION=$( command -v sudo )

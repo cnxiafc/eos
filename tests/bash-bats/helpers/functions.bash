@@ -18,11 +18,12 @@ setup-bats-dirs
 function teardown() { # teardown is run once after each test, even if it fails
   [[ -d "$HOME" ]] && rm -rf "$HOME"
   [[ -d /opt/rh/devtoolset-7 ]] && rm -rf /opt/rh/devtoolset-7
-  uninstall-package which BYPASS_DRYRUN &>/dev/null
-  uninstall-package devtoolset-7* BYPASS_DRYRUN &>/dev/null
-  uninstall-package centos-release-scl BYPASS_DRYRUN &>/dev/null
-  uninstall-package gcc-c++ BYPASS_DRYRUN &>/dev/null
-  uninstall-package build-essential BYPASS_DRYRUN &>/dev/null
+  uninstall-package which WETRUN &>/dev/null
+  uninstall-package sudo WETRUN &>/dev/null
+  uninstall-package devtoolset-7* WETRUN &>/dev/null
+  uninstall-package centos-release-scl WETRUN &>/dev/null
+  uninstall-package gcc-c++ WETRUN &>/dev/null
+  uninstall-package build-essential WETRUN &>/dev/null
 
 }
 trap teardown EXIT

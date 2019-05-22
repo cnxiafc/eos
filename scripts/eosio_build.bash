@@ -110,8 +110,6 @@ fi
 # Load eosio specific helper functions
 . ./scripts/helpers/eosio.bash
 
-[[ ! $NAME == "Ubuntu" ]] && set -i # Ubuntu doesn't support interactive mode since it uses dash
-
 echo "Beginning build version: ${SCRIPT_VERSION}"
 echo "EOSIO version to install: ${EOSIO_VERSION}"
 echo "$( date -u )"
@@ -119,20 +117,12 @@ echo "User: ${CURRENT_USER}"
 # echo "git head id: %s" "$( cat .git/refs/heads/master )"
 echo "Current branch: $( execute git rev-parse --abbrev-ref HEAD 2>/dev/null )"
 
-# Test that which is on the system before proceeding
-if ! which ls &>/dev/null; then
-   while true; do
-      [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}EOSIO compiler checks require the 'which' package: Would you like for us to install it? (y/n)?${COLOR_NC}" && read -p " " PROCEED
-      echo ""
-      case $PROCEED in
-         "" ) echo "What would you like to do?";;
-         0 | true | [Yy]* ) install-package which BYPASS_DRYRUN; break;;
-         1 | false | [Nn]* ) echo "${COLOR_RED}Please install the 'which' command before proceeding!${COLOR_NC}"; exit 1;;
-         * ) echo "Please type 'y' for yes or 'n' for no.";;
-      esac
-   done
-fi
+[[ ! $NAME == "Ubuntu" ]] && set -i # Ubuntu doesn't support interactive mode since it uses dash
 
+# Ensure sudo is available (only if not using the root user)
+ensure-sudo
+# Test that which is on the system before proceeding
+ensure-which
 # Prevent a non-git clone from running
 ensure-git-clone
 # If the same version has already been installed...
@@ -149,9 +139,8 @@ ensure-submodules-up-to-date
 
 # Use existing cmake on system (either global or specific to eosio)
 # Setup based on architecture
-if [ "$ARCH" == "Linux" ]; then
+if [[ $ARCH == "Linux" ]]; then
    export CMAKE=${CMAKE:-${EOSIO_INSTALL_DIR}/bin/cmake}
-   [[ $CURRENT_USER == "root" ]] || ensure-sudo
    OPENSSL_ROOT_DIR=/usr/include/openssl
    [[ ! -e /etc/os-release ]] && print_supported_linux_distros_and_exit
    case $NAME in

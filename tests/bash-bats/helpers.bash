@@ -15,9 +15,6 @@ TEST_LABEL="[helpers]"
   DRYRUN=false
   run execute exit 1
   ( [[ $output =~ "Executing: exit 1" ]] && [[ $status -eq 1 ]] ) || exit
-  DRYRUN=
-  run execute exit 1
-  ( [[ $output =~ "Executing: exit 1" ]] && [[ $status -eq 1 ]] ) || exit
 }
 
 @test "${TEST_LABEL} > execute > verbose" {

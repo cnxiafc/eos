@@ -1,6 +1,3 @@
-[[ -z "${VERBOSE}" ]] && export VERBOSE=false # Support tests + Disable execution messages in STDOUT
-[[ -z "${DRYRUN}" ]] && export DRYRUN=false # Support tests + Disable execution, just STDOUT
-
 # Arrays should return with newlines so we can do something like "${output##*$'\n'}" to get the last line
 IFS=$'\n'
 
@@ -16,18 +13,24 @@ if [[ $- == *i* ]]; then # Disable if the shell isn't interactive (avoids: tput:
 fi
 
 function execute() {
-  ( [[ ! -z "${VERBOSE}" ]] && $VERBOSE ) && echo " - Executing: $@"
-  ( [[ ! -z "${DRYRUN}" ]] && $DRYRUN ) || "$@"
+  $VERBOSE && echo " - Executing: $@"
+  $DRYRUN || "$@"
 }
 
+function execute-quiet() {
+  $VERBOSE && echo " - Executing: $@"
+  $DRYRUN || "$@" &>/dev/null
+}
 
 function execute-always() {
-  ( [[ ! -z "${VERBOSE}" ]] && $VERBOSE ) && echo " - Executing: $@"
-  "$@"
+  ORIGINAL_DRYRUN=$DRYRUN
+  DRYRUN=false
+  execute "$@"
+  DRYRUN=$ORIGINAL_DRYRUN
 }
 
 function ensure-git-clone() {
-  if [ ! -d "${REPO_ROOT}/.git" ]; then
+  if [[ ! -d "${REPO_ROOT}/.git" ]]; then
     echo "This build script only works with sources cloned from git"
     echo "For example, you can clone a new eos directory with: git clone https://github.com/EOSIO/eos"
     exit 1
@@ -42,8 +45,24 @@ function ensure-submodules-up-to-date() {
   fi
 }
 
+function ensure-which() {
+  if ! which ls &>/dev/null; then
+    while true; do
+      [[ $NONINTERACTIVE == false ]] && printf "${COLOR_YELLOW}EOSIO compiler checks require the 'which' package: Would you like for us to install it? (y/n)?${COLOR_NC}" && read -p " " PROCEED
+      echo ""
+      case $PROCEED in
+          "" ) echo "What would you like to do?";;
+          0 | true | [Yy]* ) install-package which WETRUN; break;;
+          1 | false | [Nn]* ) echo "${COLOR_RED}Please install the 'which' command before proceeding!${COLOR_NC}"; exit 1;;
+          * ) echo "Please type 'y' for yes or 'n' for no.";;
+      esac
+    done
+  fi
+}
+
 function ensure-sudo() {
-  if [[ $DRYRUN == false ]] && [[ -z $( command -v sudo ) ]]; then echo "You must have sudo installed to run the build scripts!" && exit 1; fi
+  ( [[ $CURRENT_USER != "root" ]] && [[ -z $SUDO_LOCATION ]] ) && echo "${COLOR_RED}Please install the 'sudo' command before proceeding!${COLOR_NC}" && exit 1
+  true 1>/dev/null # Needed
 }
 
 function previous-install-prompt() {
@@ -88,23 +107,27 @@ function set_system_vars() {
 }
 
 function install-package() {
-  ORIGINAL_DRYRUN=$DRYRUN
-  [[ ! -z $2 ]] && DRYRUN=false
   if [[ $ARCH == "Linux" ]]; then
-    ( [[ $NAME =~ "Amazon Linux" ]] || [[ $NAME == "CentOS Linux" ]] ) && execute $( [[ $CURRENT_USER == "root" ]] || echo /usr/bin/sudo -E ) ${YUM} install -y $1 || true
-    [[ $NAME =~ "Ubuntu" ]] && execute $( [[ $CURRENT_USER == "root" ]] || echo /usr/bin/sudo -E ) apt-get update && ( execute $( [[ $CURRENT_USER == "root" ]] || echo /usr/bin/sudo -E ) $APTGET install -y $1 || true )
+    EXECUTION_FUNCTION="execute"
+    [[ $2 == "WETRUN" ]] && EXECUTION_FUNCTION="execute-always"
+    [[ $2 == "QUIET" ]] && EXECUTION_FUNCTION="execute-quiet"
+    ( [[ $2 =~ "--" ]] || [[ $3 =~ "--" ]] ) && OPTIONS="${2}${3}"
+    [[ $CURRENT_USER != "root" ]] && [[ ! -z $SUDO_LOCATION ]] && SUDO_COMMAND="$SUDO_LOCATION -E"
+    ( [[ $NAME =~ "Amazon Linux" ]] || [[ $NAME == "CentOS Linux" ]] ) && eval $EXECUTION_FUNCTION $SUDO_COMMAND $YUM $OPTIONS install -y $1
+    ( [[ $NAME =~ "Ubuntu" ]] ) && eval $EXECUTION_FUNCTION $SUDO_COMMAND $APTGET $OPTIONS install -y $1
   fi
-  DRYRUN=$ORIGINAL_DRYRUN
   true # Required; Weird behavior without it
 }
 
 function uninstall-package() {
-  ORIGINAL_DRYRUN=$DRYRUN
-  [[ ! -z $2 ]] && DRYRUN=false
   if [[ $ARCH == "Linux" ]]; then
-    ( [[ $NAME =~ "Amazon Linux" ]] || [[ $NAME == "CentOS Linux" ]] ) && ( execute $( [[ $CURRENT_USER == "root" ]] || echo /usr/bin/sudo -E ) ${YUM} remove -y $1 || true )
-    [[ $NAME =~ "Ubuntu" ]] && ( execute $( [[ $CURRENT_USER == "root" ]] || echo /usr/bin/sudo -E ) $APTGET remove -y $1 || true )
+    EXECUTION_FUNCTION="execute"
+    [[ $2 == "WETRUN" ]] && EXECUTION_FUNCTION="execute-always"
+    [[ $2 == "QUIET" ]] && EXECUTION_FUNCTION="execute-quiet"
+    ( [[ $2 =~ "--" ]] || [[ $3 =~ "--" ]] ) && OPTIONS="${2}${3}"
+    [[ $CURRENT_USER != "root" ]] && [[ ! -z $SUDO_LOCATION ]] && SUDO_COMMAND="$SUDO_LOCATION -E"
+    ( [[ $NAME =~ "Amazon Linux" ]] || [[ $NAME == "CentOS Linux" ]] ) && eval $EXECUTION_FUNCTION $SUDO_COMMAND $YUM $OPTIONS remove -y $1
+    ( [[ $NAME =~ "Ubuntu" ]] ) && eval $EXECUTION_FUNCTION $SUDO_COMMAND $APTGET $OPTIONS remove -y $1
   fi
-  DRYRUN=$ORIGINAL_DRYRUN
   true
 }

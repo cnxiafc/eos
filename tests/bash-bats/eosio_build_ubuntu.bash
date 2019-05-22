@@ -26,12 +26,11 @@ export TEST_LABEL="[eosio_build_ubuntu]"
     set_system_vars # Obtain current machine's resources and set the necessary variables (like JOBS, etc)
 
     # Testing clang already existing (no pinning of clang8)
-    [[ "$(echo ${VERSION_ID})" == "16.04" ]] && install-package clang BYPASS_DRYRUN &>/dev/null || install-package build-essential BYPASS_DRYRUN
+    [[ "$(echo ${VERSION_ID})" == "16.04" ]] && install-package clang WETRUN &>/dev/null || install-package build-essential WETRUN
     run bash -c "printf \"y\n%.0s\" {1..100} | ./$SCRIPT_LOCATION"
     
     [[ ! -z $(echo "${output}" | grep "Executing: make -j${JOBS}") ]] || exit
     [[ ! -z $(echo "${output}" | grep "Starting EOSIO Dependency Install") ]] || exit
-    [[ ! -z $(echo "${output}" | grep "Executing: /usr/bin/apt-get update") ]] || exit
     [[ ! -z $(echo "${output}" | grep python.*found) ]] || exit
     [[ ! -z $(echo "${output}" | grep make.*NOT.*found) ]] || exit
     [[ ! -z $(echo "${output}" | grep ${HOME}.*/src/boost) ]] || exit
@@ -43,5 +42,5 @@ export TEST_LABEL="[eosio_build_ubuntu]"
     [[ -z $(echo "${output}" | grep "-   NOT found.") ]] || exit
     [[ -z $(echo "${output}" | grep lcov.*found.) ]] || exit
     [[ ! -z $(echo "${output}" | grep "EOSIO has been successfully built") ]] || exit
-    [[ "$(echo ${VERSION_ID})" == "16.04" ]] && uninstall-package clang BYPASS_DRYRUN &>/dev/null || uninstall-package build-essential BYPASS_DRYRUN
+    [[ "$(echo ${VERSION_ID})" == "16.04" ]] && uninstall-package clang WETRUN &>/dev/null || uninstall-package build-essential WETRUN
 }
