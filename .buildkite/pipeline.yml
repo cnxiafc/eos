@@ -72,9 +72,8 @@ steps:
 
   - label: ":aws: Amazon Linux 2 Build"
     command:
-      - "ls -laht"
-      - "VERBOSE=true ./scripts/eosio_build.bash -y -m"
-      - "tar -pczf build.tar.gz build; if [[ ! -f build.tar.gz ]]; then echo 'ERROR: No build.tar.gz artifact found!' && exit 1; fi"
+      - "git clone ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO} && cd eos && git checkout ${BUILDKITE_COMMIT} && git submodule update --init --recursive && VERBOSE=true ./scripts/eosio_build.bash -y -m"
+      - "cd eos && tar -pczf build.tar.gz build; if [[ ! -f build.tar.gz ]]; then echo 'ERROR: No build.tar.gz artifact found!' && exit 1; fi"
     agents:
       queue: "automation-large-builder-fleet"
     artifact_paths: "build.tar.gz"
@@ -88,6 +87,7 @@ steps:
         shell: ["/bin/bash", "-i", "-e", "-c"]
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:amazonlinux2_1-9-0-develop"
+        mount-checkout: false
     timeout: 120
 
   # - label: ":centos: CentOS 7 Build"
