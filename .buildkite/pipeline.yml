@@ -72,6 +72,7 @@ steps:
 
   - label: ":aws: Amazon Linux 2 Build"
     command:
+      - "sudo chown -R cicd:staff *"
       - "VERBOSE=true ./scripts/eosio_build.bash -y -m"
       - "tar -pczf build.tar.gz build; if [[ ! -f build.tar.gz ]]; then echo 'ERROR: No build.tar.gz artifact found!' && exit 1; fi"
     agents:
