@@ -72,7 +72,7 @@ steps:
 
   - label: ":aws: Amazon Linux 2 Build"
     command:
-      - "pwd; exit 1"
+      - "ls -laht"
       - "VERBOSE=true ./scripts/eosio_build.bash -y -m"
       - "tar -pczf build.tar.gz build; if [[ ! -f build.tar.gz ]]; then echo 'ERROR: No build.tar.gz artifact found!' && exit 1; fi"
     agents:
@@ -88,7 +88,6 @@ steps:
         shell: ["/bin/bash", "-i", "-e", "-c"]
         debug: true
         image: "436617320021.dkr.ecr.us-west-2.amazonaws.com/ci:amazonlinux2_1-9-0-develop"
-        workdir: "/home/cicd/eos"
     timeout: 120
 
   # - label: ":centos: CentOS 7 Build"
