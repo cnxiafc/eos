@@ -30,7 +30,7 @@ function execute-always() {
 }
 
 function ensure-git-clone() {
-  if [[ ! -d "${REPO_ROOT}/.git" ]]; then
+  if [[ ! -e "${REPO_ROOT}/.git" ]]; then
     echo "This build script only works with sources cloned from git"
     echo "For example, you can clone a new eos directory with: git clone https://github.com/EOSIO/eos"
     exit 1
